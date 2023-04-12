@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script
+  src="https://code.jquery.com/jquery-3.6.1.js"
+  integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI="
+  crossorigin="anonymous"></script>
+  <title>Document</title>
+</head>
+  <body>   
+    <canvas id="canvas">
+    </canvas>   
+    <p class="score">현재 점수 : <span>0</span></p>
+    <div class="reset">
+      <button type="button">다시시작</button>
+    </div>
+    <div class="box box1">
+      1
+      <button type="button" class="button">생성</button>
+      <ul class="ul"></ul>
+    </div>
+    <div class="box box2">2</div>
+    <div class="box box3">3</div>
+    <div class="box box4">4</div>
+    <div class="box box5">5</div>
+    <div class="box box6">6</div>
+    <div class="box box7">7</div>
+  </body>
+<style>
+  html,body{ margin:0; padding:0; width:100%; height:100%;}
+.box{ width:100%; height:100%; position:relative; color:#fff; font-size:30pt;display:none;}
+.box:nth-child(1) {background:red}
+.box:nth-child(2) {background:yellow}
+.box:nth-child(3) {background:pink}
+.box:nth-child(4) {background:coral}
+.box:nth-child(5) {background:gray}
+.box:nth-child(6) {background:skyblue}
+.box:nth-child(7) {background:purple}
+.reset {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);display:none;align-items:center;justify-content:center;}
+</style>
+<script>
+  let canvas = document.getElementById('canvas');
+  let ctx = canvas.getContext('2d');
+  let scoreTxt = document.querySelector('.score span')
+  let reset = document.querySelector('.reset')
+  let resetBtn = document.querySelector('.reset > button')
+  let img1 = new Image();
+  img1.src = 'dinosaur/dinosaur.png'
+  let img2 = new Image();
+  img2.src = 'dinosaur/cactus2.png'
+
+  canvas.width = window.innerWidth - 100;
+  canvas.height = window.innerHeight - 100;
+
+  let dino = {
+    x : 10,
+    y : 200,
+    width: 50,
+    height: 50,
+    draw() {
+      ctx.fillStyle = 'green';
+      //ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.drawImage(img1, this.x, this.y, this.width, this.height)
+    }
+  }
+
+  dino.draw();
+
+  class Cactus {
+    constructor() {
+      this.x = 500;
+      this.y = 200;
+      this.width = 20;
+      this.height = 50;
+    }
+    draw() {
+      ctx.fillStyle = 'red';
+      //ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.drawImage(img2, this.x, this.y, this.width, this.height)
+    }
+  }
+
+  //let cactus = new Cactus();
+  //cactus.draw();
+  let timer = 0;
+  let jumpTimer = 0;
+  let cactussss = [];
+  let jumping = false;
+  let animation;
+  let score = 0;
+
+  function frameAction() {
+    // 1초에 60번 코드 실행하기
+    animation = requestAnimationFrame(frameAction)
+    timer++; // 프레임 수에 따라 증가
+
+    ctx.clearRect(0,0, canvas.width, canvas.height); // 캔버스 리셋
+    if (timer % 120 === 0) {
+      let cactus = new Cactus();
+      cactussss.push(cactus);
+    }
+
+    cactussss.forEach((a, i, o) => {
+      a.x-=2;
+      a.draw();
+      if (a.x < 0) {
+        o.splice(i,1)
+        score+=100;
+        scoreTxt.innerText = score;
+      }
+      
+      충돌여부(dino, a)
+    })
+
+    if (jumping == true) {
+      jumpTimer+=2
+      dino.y-=2;
+      if (jumpTimer > 100) {
+        jumpTimer = 0;
+        jumping = false;
+      }
+    } else {
+      if (dino.y <= 200) dino.y+=2
+    }
+    
+    //cactus.draw()
+    //dino.x++;
+    dino.draw();
+  }
+
+  frameAction();
+
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+      jumping = true;
+    }
+  })
+
+  resetBtn.addEventListener('click', function(e) {
+    e.target.parentNode.removeAttribute('style');
+    timer = 0;
+    jumpTimer = 0;
+    cactussss = [];
+    jumping = false;
+    scoreTxt.innerText = 0;
+    ctx.clearRect(0,0, canvas.width, canvas.height);
+    frameAction();
+  })
+
+  // 충돌 확인
+  function 충돌여부(dino, cactus) {
+    let x축차이 = cactus.x - (dino.x + dino.width)
+    let y축차이 = cactus.y - (dino.y + dino.height)
+    if (x축차이 < 0 && y축차이 < 0) {
+      cancelAnimationFrame(animation)
+      score = 0;
+      reset.style.display = 'flex';
+    }
+  }
+
+
+  function setVisible(a){
+    let result = false;
+    if( a.length > 0 ){
+      var stdPos = $(window).scrollTop() + $(window).height() - ($(window).height() / 3);
+      if( stdPos >  a.offset().top ){
+        result = true;
+      }
+    }
+    return result;
+  }
+ $(".box").each(function () {
+      // 개별적으로 Wheel 이벤트 적용 mousewheel(IE/chrome/opera) DOMMouseScroll(FF)
+      $(this).on("mousewheel DOMMouseScroll", function (e) {
+          let rtn = setVisible($(".box1"));
+          //console.log(rtn);
+          if(rtn == false){
+            e.preventDefault();
+            var delta = 0;
+            /* IE */
+            if (!event) event = window.event;
+            //휠에 대한 정보 얻기 파이어폭스 외 IE/Chrome/Opera = wheelDelta
+            if (event.wheelDelta) {
+                delta = event.wheelDelta / 50;
+                //평균 50~120 사이로 요소의 인식높이에 따라 다름(한 화면(height100%)기준일떄는 120
+                if (window.opera) delta = -delta;
+            //휠에 대한 정보 얻기 Mozilla FF = detail
+            } else if (event.detail) delta = -event.detail / 3;
+            var moveTop = null;
+            // 마우스휠을 위에서 아래로
+            if (delta < 0) {
+                if ($(this).next() != undefined) {
+                    moveTop = $(this).next().offset().top;
+                }
+            // 마우스휠을 아래에서 위로
+            } else {
+                if ($(this).prev() != undefined) {
+                    moveTop = $(this).prev().offset().top;
+                }
+            }
+            // 화면 이동 0.8초(800)
+            $("html,body").stop().animate({
+                scrollTop: moveTop + 'px'
+            }, {
+                duration: 300, complete: function () {
+                }
+            });
+          }
+      });
+  });
+
+
+  const table = [
+        { name: 1 },
+        { name: 2 },
+        { name: 3 },
+        { name: 4 },
+        { name: 5 },
+        { name: 6 },
+        { name: 7 },
+        { name: 8 },
+        { name: 9 },
+        { name: 10 },
+    ]
+
+  function tableM(table) {
+      tr = '';
+
+      table.forEach(i => {
+            tr += '<li>' + i.name + '</li>'
+        });
+      return tr;
+  }
+  $('.button').on('click', function() {
+    const tableData = tableM(table);
+    $('.ul').append('<li>가나다</li>');
+  });
+
+  
+</script>
+</html>
